@@ -22,19 +22,19 @@
     "string-validation",
     "typescript"
   ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "main": "./dist/..js",
+  "module": "./dist..mjs",
+  "types": "./dist/..d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "types": "./dist/..d.ts",
+      "import": "./dist/..mjs",
+      "require": "./dist/..js"
     },
     "./zod": {
-      "types": "./dist/zod/index.d.ts",
-      "import": "./dist/zod/index.mjs",
-      "require": "./dist/zod/index.js"
+      "types": "./dist/zod.d.ts",
+      "import": "./dist/zod.mjs",
+      "require": "./dist/zod.js"
     }
   },
   "files": [
@@ -43,7 +43,7 @@
   "sideEffects": false,
   "size-limit": [
     {
-      "path": "./dist/index.js",
+      "path": "./dist/..js",
       "limit": "5 KB"
     }
   ],

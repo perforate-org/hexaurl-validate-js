@@ -1,11 +1,7 @@
+// src/zod/index.ts
+import { ZodString } from "zod";
+
 // src/config.ts
-var Composition = /* @__PURE__ */ ((Composition2) => {
-  Composition2[Composition2["Alphanumeric"] = 0] = "Alphanumeric";
-  Composition2[Composition2["AlphanumericHyphen"] = 1] = "AlphanumericHyphen";
-  Composition2[Composition2["AlphanumericUnderscore"] = 2] = "AlphanumericUnderscore";
-  Composition2[Composition2["AlphanumericHyphenUnderscore"] = 3] = "AlphanumericHyphenUnderscore";
-  return Composition2;
-})(Composition || {});
 var _Config = class _Config {
   constructor(minLength = _Config.DEFAULT_MIN_LENGTH, maxLength = null, composition = 1 /* AlphanumericHyphen */, delimiter = null) {
     this.minLength = minLength;
@@ -57,7 +53,6 @@ var createAllowedDelimiterRules = () => ({
   allowConsecutiveUnderscores: true,
   allowAdjacentHyphenUnderscore: true
 });
-var createConfig = (o = {}) => Config.create(o);
 
 // src/error.ts
 var HexaUrlError = class extends Error {
@@ -66,21 +61,6 @@ var HexaUrlError = class extends Error {
     this.code = code;
   }
 };
-var HexaUrlErrorCode = /* @__PURE__ */ ((HexaUrlErrorCode2) => {
-  HexaUrlErrorCode2[HexaUrlErrorCode2["StringTooLong"] = 0] = "StringTooLong";
-  HexaUrlErrorCode2[HexaUrlErrorCode2["StringTooShort"] = 1] = "StringTooShort";
-  HexaUrlErrorCode2[HexaUrlErrorCode2["BytesTooLong"] = 2] = "BytesTooLong";
-  HexaUrlErrorCode2[HexaUrlErrorCode2["BytesTooShort"] = 3] = "BytesTooShort";
-  HexaUrlErrorCode2[HexaUrlErrorCode2["InvalidCharacter"] = 4] = "InvalidCharacter";
-  HexaUrlErrorCode2[HexaUrlErrorCode2["InvalidConfig"] = 5] = "InvalidConfig";
-  HexaUrlErrorCode2[HexaUrlErrorCode2["InvalidLength"] = 6] = "InvalidLength";
-  HexaUrlErrorCode2[HexaUrlErrorCode2["LeadingTrailingHyphen"] = 7] = "LeadingTrailingHyphen";
-  HexaUrlErrorCode2[HexaUrlErrorCode2["LeadingTrailingUnderscore"] = 8] = "LeadingTrailingUnderscore";
-  HexaUrlErrorCode2[HexaUrlErrorCode2["ConsecutiveHyphens"] = 9] = "ConsecutiveHyphens";
-  HexaUrlErrorCode2[HexaUrlErrorCode2["ConsecutiveUnderscores"] = 10] = "ConsecutiveUnderscores";
-  HexaUrlErrorCode2[HexaUrlErrorCode2["AdjacentHyphenUnderscore"] = 11] = "AdjacentHyphenUnderscore";
-  return HexaUrlErrorCode2;
-})(HexaUrlErrorCode || {});
 
 // src/validate.ts
 var PATTERNS = {
@@ -101,66 +81,82 @@ var validate = (input, config = Config.create(), byteSize = 16) => {
   }
   config.minLength !== null && len < config.minLength && throwError(
     1 /* StringTooShort */,
-    `String is too short: minimum length is ${config.minLength} characters`
+    `Too short: minimum length is ${config.minLength} characters`
   );
   len > effectiveMax && throwError(
     0 /* StringTooLong */,
-    `String is too long: maximum length is ${effectiveMax} characters`
+    `Too long: maximum length is ${effectiveMax} characters`
   );
-  !getPatternForComposition(config.composition).test(input) && throwError(
+  const [pattern, allowedChars] = getPatternForComposition(config.composition);
+  !pattern.test(input) && throwError(
     4 /* InvalidCharacter */,
-    "Invalid character in this type of HexaURL"
+    `Invalid character: only ${allowedChars} are allowed`
   );
   validateDelimiters(input, config.delimiter ?? createDelimiterRules());
 };
 var getPatternForComposition = (composition) => {
   switch (composition) {
     case 0 /* Alphanumeric */:
-      return PATTERNS.ALPHANUMERIC;
+      return [PATTERNS.ALPHANUMERIC, "alphabets or numbers"];
     case 1 /* AlphanumericHyphen */:
-      return PATTERNS.ALPHANUMERIC_HYPHEN;
+      return [PATTERNS.ALPHANUMERIC_HYPHEN, "alphabets, numbers, or hyphens"];
     case 2 /* AlphanumericUnderscore */:
-      return PATTERNS.ALPHANUMERIC_UNDERSCORE;
+      return [
+        PATTERNS.ALPHANUMERIC_UNDERSCORE,
+        "alphabets, numbers, or underscores"
+      ];
     case 3 /* AlphanumericHyphenUnderscore */:
-      return PATTERNS.ALPHANUMERIC_HYPHEN_UNDERSCORE;
+      return [
+        PATTERNS.ALPHANUMERIC_HYPHEN_UNDERSCORE,
+        "alphabets, numbers, hyphens, or underscores"
+      ];
   }
 };
 var validateDelimiters = (input, rules) => {
   !rules.allowLeadingTrailingHyphens && (input.startsWith("-") || input.endsWith("-")) && throwError(
     7 /* LeadingTrailingHyphen */,
-    "Hyphens cannot start or end this type of HexaURL"
+    "Cannot start or end with hyphens (-)"
   );
   !rules.allowLeadingTrailingUnderscores && (input.startsWith("_") || input.endsWith("_")) && throwError(
     8 /* LeadingTrailingUnderscore */,
-    "Underscores cannot start or end this type of HexaURL"
+    "Cannot start or end with underscores (_)"
   );
   !rules.allowConsecutiveHyphens && input.includes("--") && throwError(
     9 /* ConsecutiveHyphens */,
-    "This type of HexaURL cannot include consecutive hyphens"
+    "Cannot contain consecutive hyphens (--)"
   );
   !rules.allowConsecutiveUnderscores && input.includes("__") && throwError(
     10 /* ConsecutiveUnderscores */,
-    "This type of HexaURL cannot include consecutive underscores"
+    "Cannot contain consecutive underscores (__)"
   );
   !rules.allowAdjacentHyphenUnderscore && (input.includes("-_") || input.includes("_-")) && throwError(
     11 /* AdjacentHyphenUnderscore */,
-    "This type of HexaURL cannot include adjacent hyphens and underscores"
+    "Cannot contain adjacent hyphen and underscore combinations (-_ or _-)"
   );
 };
 var throwError = (code, message) => {
   throw new HexaUrlError(message, code);
 };
-var isEncodingSafe = (input, byteSize = 16) => input.length <= calcStrLen(byteSize) && /^[\x00-\x7F]*$/.test(input);
-export {
-  Composition,
-  Config,
-  HexaUrlError,
-  HexaUrlErrorCode,
-  createAllowedDelimiterRules,
-  createConfig,
-  createDelimiterRules,
-  isEncodingSafe,
-  validate
+
+// src/zod/index.ts
+ZodString.prototype.hexaurl = function(config = Config.create(), byteSize = 16) {
+  return this.superRefine((value, ctx) => {
+    try {
+      validate(value, config, byteSize);
+    } catch (err) {
+      if (err instanceof HexaUrlError) {
+        ctx.addIssue({
+          code: "custom",
+          message: err.message + ` (code: ${err.code})`
+        });
+      } else {
+        ctx.addIssue({
+          code: "custom",
+          message: "Unknown error during HexaURL validation"
+        });
+      }
+    }
+  });
 };
 /*!
  * hexaurl-validate-js
@@ -169,4 +165,4 @@ export {
  * https://opensource.org/licenses/MIT
  * https://www.apache.org/licenses/LICENSE-2.0
  */
-//# sourceMappingURL=index.mjs.map
+//# sourceMappingURL=zod.mjs.map

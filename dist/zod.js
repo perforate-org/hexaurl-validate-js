@@ -1,5 +1,7 @@
+"use strict";
+
 // src/zod/index.ts
-import { ZodString } from "zod";
+var import_zod = require("zod");
 
 // src/config.ts
 var _Config = class _Config {
@@ -81,50 +83,57 @@ var validate = (input, config = Config.create(), byteSize = 16) => {
   }
   config.minLength !== null && len < config.minLength && throwError(
     1 /* StringTooShort */,
-    `String is too short: minimum length is ${config.minLength} characters`
+    `Too short: minimum length is ${config.minLength} characters`
   );
   len > effectiveMax && throwError(
     0 /* StringTooLong */,
-    `String is too long: maximum length is ${effectiveMax} characters`
+    `Too long: maximum length is ${effectiveMax} characters`
   );
-  !getPatternForComposition(config.composition).test(input) && throwError(
+  const [pattern, allowedChars] = getPatternForComposition(config.composition);
+  !pattern.test(input) && throwError(
     4 /* InvalidCharacter */,
-    "Invalid character in this type of HexaURL"
+    `Invalid character: only ${allowedChars} are allowed`
   );
   validateDelimiters(input, config.delimiter ?? createDelimiterRules());
 };
 var getPatternForComposition = (composition) => {
   switch (composition) {
     case 0 /* Alphanumeric */:
-      return PATTERNS.ALPHANUMERIC;
+      return [PATTERNS.ALPHANUMERIC, "alphabets or numbers"];
     case 1 /* AlphanumericHyphen */:
-      return PATTERNS.ALPHANUMERIC_HYPHEN;
+      return [PATTERNS.ALPHANUMERIC_HYPHEN, "alphabets, numbers, or hyphens"];
     case 2 /* AlphanumericUnderscore */:
-      return PATTERNS.ALPHANUMERIC_UNDERSCORE;
+      return [
+        PATTERNS.ALPHANUMERIC_UNDERSCORE,
+        "alphabets, numbers, or underscores"
+      ];
     case 3 /* AlphanumericHyphenUnderscore */:
-      return PATTERNS.ALPHANUMERIC_HYPHEN_UNDERSCORE;
+      return [
+        PATTERNS.ALPHANUMERIC_HYPHEN_UNDERSCORE,
+        "alphabets, numbers, hyphens, or underscores"
+      ];
   }
 };
 var validateDelimiters = (input, rules) => {
   !rules.allowLeadingTrailingHyphens && (input.startsWith("-") || input.endsWith("-")) && throwError(
     7 /* LeadingTrailingHyphen */,
-    "Hyphens cannot start or end this type of HexaURL"
+    "Cannot start or end with hyphens (-)"
   );
   !rules.allowLeadingTrailingUnderscores && (input.startsWith("_") || input.endsWith("_")) && throwError(
     8 /* LeadingTrailingUnderscore */,
-    "Underscores cannot start or end this type of HexaURL"
+    "Cannot start or end with underscores (_)"
   );
   !rules.allowConsecutiveHyphens && input.includes("--") && throwError(
     9 /* ConsecutiveHyphens */,
-    "This type of HexaURL cannot include consecutive hyphens"
+    "Cannot contain consecutive hyphens (--)"
   );
   !rules.allowConsecutiveUnderscores && input.includes("__") && throwError(
     10 /* ConsecutiveUnderscores */,
-    "This type of HexaURL cannot include consecutive underscores"
+    "Cannot contain consecutive underscores (__)"
   );
   !rules.allowAdjacentHyphenUnderscore && (input.includes("-_") || input.includes("_-")) && throwError(
     11 /* AdjacentHyphenUnderscore */,
-    "This type of HexaURL cannot include adjacent hyphens and underscores"
+    "Cannot contain adjacent hyphen and underscore combinations (-_ or _-)"
   );
 };
 var throwError = (code, message) => {
@@ -132,7 +141,7 @@ var throwError = (code, message) => {
 };
 
 // src/zod/index.ts
-ZodString.prototype.hexaurl = function(config = Config.create(), byteSize = 16) {
+import_zod.ZodString.prototype.hexaurl = function(config = Config.create(), byteSize = 16) {
   return this.superRefine((value, ctx) => {
     try {
       validate(value, config, byteSize);
@@ -158,4 +167,4 @@ ZodString.prototype.hexaurl = function(config = Config.create(), byteSize = 16) 
  * https://opensource.org/licenses/MIT
  * https://www.apache.org/licenses/LICENSE-2.0
  */
-//# sourceMappingURL=index.mjs.map
+//# sourceMappingURL=zod.js.map
