@@ -86,10 +86,11 @@ export const validate = (
     );
 
   // Character validation based on identifier composition
-  !getPatternForComposition(config.composition).test(input) &&
+  const [pattern, allowedChars] = getPatternForComposition(config.composition);
+  !pattern.test(input) &&
     throwError(
       HexaUrlErrorCode.InvalidCharacter,
-      "Invalid character in this type of HexaURL",
+      `Invalid character: only ${allowedChars} are allowed`,
     );
 
   // Delimiter rules validation
@@ -100,16 +101,24 @@ export const validate = (
  * Maps identifier composition to corresponding RegExp pattern.
  * Patterns are precompiled for performance.
  */
-const getPatternForComposition = (composition: Composition): RegExp => {
+const getPatternForComposition = (
+  composition: Composition,
+): [RegExp, string] => {
   switch (composition) {
     case Composition.Alphanumeric:
-      return PATTERNS.ALPHANUMERIC;
+      return [PATTERNS.ALPHANUMERIC, "alphabets or numbers"];
     case Composition.AlphanumericHyphen:
-      return PATTERNS.ALPHANUMERIC_HYPHEN;
+      return [PATTERNS.ALPHANUMERIC_HYPHEN, "alphabets, numbers, or hyphens"];
     case Composition.AlphanumericUnderscore:
-      return PATTERNS.ALPHANUMERIC_UNDERSCORE;
+      return [
+        PATTERNS.ALPHANUMERIC_UNDERSCORE,
+        "alphabets, numbers, or underscores",
+      ];
     case Composition.AlphanumericHyphenUnderscore:
-      return PATTERNS.ALPHANUMERIC_HYPHEN_UNDERSCORE;
+      return [
+        PATTERNS.ALPHANUMERIC_HYPHEN_UNDERSCORE,
+        "alphabets, numbers, hyphens, or underscores",
+      ];
   }
 };
 
@@ -123,14 +132,14 @@ const validateDelimiters = (input: string, rules: DelimiterRules): void => {
     (input.startsWith("-") || input.endsWith("-")) &&
     throwError(
       HexaUrlErrorCode.LeadingTrailingHyphen,
-      "Hyphens cannot start or end this type of HexaURL",
+      "String cannot start or end with hyphens (-)",
     );
 
   !rules.allowLeadingTrailingUnderscores &&
     (input.startsWith("_") || input.endsWith("_")) &&
     throwError(
       HexaUrlErrorCode.LeadingTrailingUnderscore,
-      "Underscores cannot start or end this type of HexaURL",
+      "String cannot start or end with underscores (_)",
     );
 
   // Check consecutive delimiters
@@ -138,14 +147,14 @@ const validateDelimiters = (input: string, rules: DelimiterRules): void => {
     input.includes("--") &&
     throwError(
       HexaUrlErrorCode.ConsecutiveHyphens,
-      "This type of HexaURL cannot include consecutive hyphens",
+      "String cannot contain consecutive hyphens (--)",
     );
 
   !rules.allowConsecutiveUnderscores &&
     input.includes("__") &&
     throwError(
       HexaUrlErrorCode.ConsecutiveUnderscores,
-      "This type of HexaURL cannot include consecutive underscores",
+      "String cannot contain consecutive underscores (__)",
     );
 
   // Check adjacent different delimiters
@@ -153,7 +162,7 @@ const validateDelimiters = (input: string, rules: DelimiterRules): void => {
     (input.includes("-_") || input.includes("_-")) &&
     throwError(
       HexaUrlErrorCode.AdjacentHyphenUnderscore,
-      "This type of HexaURL cannot include adjacent hyphens and underscores",
+      "String cannot contain adjacent hyphen and underscore combinations (-_ or _-)",
     );
 };
 
