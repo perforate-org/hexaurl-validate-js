@@ -75,14 +75,14 @@ export const validate = (
     len < config.minLength &&
     throwError(
       HexaUrlErrorCode.StringTooShort,
-      `String is too short: minimum length is ${config.minLength} characters`,
+      `Too short: minimum length is ${config.minLength} characters`,
     );
 
   // Check maximum length
   len > effectiveMax &&
     throwError(
       HexaUrlErrorCode.StringTooLong,
-      `String is too long: maximum length is ${effectiveMax} characters`,
+      `Too long: maximum length is ${effectiveMax} characters`,
     );
 
   // Character validation based on identifier composition
@@ -132,14 +132,14 @@ const validateDelimiters = (input: string, rules: DelimiterRules): void => {
     (input.startsWith("-") || input.endsWith("-")) &&
     throwError(
       HexaUrlErrorCode.LeadingTrailingHyphen,
-      "String cannot start or end with hyphens (-)",
+      "Cannot start or end with hyphens (-)",
     );
 
   !rules.allowLeadingTrailingUnderscores &&
     (input.startsWith("_") || input.endsWith("_")) &&
     throwError(
       HexaUrlErrorCode.LeadingTrailingUnderscore,
-      "String cannot start or end with underscores (_)",
+      "Cannot start or end with underscores (_)",
     );
 
   // Check consecutive delimiters
@@ -147,14 +147,14 @@ const validateDelimiters = (input: string, rules: DelimiterRules): void => {
     input.includes("--") &&
     throwError(
       HexaUrlErrorCode.ConsecutiveHyphens,
-      "String cannot contain consecutive hyphens (--)",
+      "Cannot contain consecutive hyphens (--)",
     );
 
   !rules.allowConsecutiveUnderscores &&
     input.includes("__") &&
     throwError(
       HexaUrlErrorCode.ConsecutiveUnderscores,
-      "String cannot contain consecutive underscores (__)",
+      "Cannot contain consecutive underscores (__)",
     );
 
   // Check adjacent different delimiters
@@ -162,7 +162,7 @@ const validateDelimiters = (input: string, rules: DelimiterRules): void => {
     (input.includes("-_") || input.includes("_-")) &&
     throwError(
       HexaUrlErrorCode.AdjacentHyphenUnderscore,
-      "String cannot contain adjacent hyphen and underscore combinations (-_ or _-)",
+      "Cannot contain adjacent hyphen and underscore combinations (-_ or _-)",
     );
 };
 
