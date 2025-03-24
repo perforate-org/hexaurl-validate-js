@@ -59,8 +59,8 @@ export const validate = (
   // Calculate effective maximum length
   const effectiveMax =
     config.maxLength !== null
-      ? Math.min(config.maxLength, calcStrLen(byteSize))
-      : calcStrLen(byteSize);
+      ? Math.min(config.maxLength, Math.floor(calcStrLen(byteSize)))
+      : Math.floor(calcStrLen(byteSize));
 
   // Check if effectiveMax is less than minLength
   if (config.minLength !== null && effectiveMax < config.minLength) {
