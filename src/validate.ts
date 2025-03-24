@@ -71,19 +71,20 @@ export const validate = (
   }
 
   // Check minimum length
-  config.minLength !== null &&
-    len < config.minLength &&
+  if (config.minLength !== null && len < config.minLength) {
     throwError(
       HexaUrlErrorCode.StringTooShort,
-      `Too short: minimum length is ${config.minLength} characters`,
+      `Too short: minimum length is ${config.minLength}`,
     );
+  }
 
   // Check maximum length
-  len > effectiveMax &&
+  if (len > effectiveMax) {
     throwError(
       HexaUrlErrorCode.StringTooLong,
-      `Too long: maximum length is ${effectiveMax} characters`,
+      `Too long: maximum length is ${effectiveMax}`,
     );
+  }
 
   // Character validation based on identifier composition
   const [pattern, allowedChars] = getPatternForComposition(config.composition);
