@@ -74,21 +74,25 @@ var PATTERNS = {
 var calcStrLen = (n) => n * 4 / 3;
 var validate = (input, config = Config.create(), byteSize = 16) => {
   const len = input.length;
-  const effectiveMax = config.maxLength !== null ? Math.min(config.maxLength, calcStrLen(byteSize)) : calcStrLen(byteSize);
+  const effectiveMax = config.maxLength !== null ? Math.min(config.maxLength, Math.floor(calcStrLen(byteSize))) : Math.floor(calcStrLen(byteSize));
   if (config.minLength !== null && effectiveMax < config.minLength) {
     throwError(
       5 /* InvalidConfig */,
       `Maximum length (${effectiveMax}) cannot be less than minimum length (${config.minLength})`
     );
   }
-  config.minLength !== null && len < config.minLength && throwError(
-    1 /* StringTooShort */,
-    `Too short: minimum length is ${config.minLength} characters`
-  );
-  len > effectiveMax && throwError(
-    0 /* StringTooLong */,
-    `Too long: maximum length is ${effectiveMax} characters`
-  );
+  if (config.minLength !== null && len < config.minLength) {
+    throwError(
+      1 /* StringTooShort */,
+      `Too short: minimum length is ${config.minLength}`
+    );
+  }
+  if (len > effectiveMax) {
+    throwError(
+      0 /* StringTooLong */,
+      `Too long: maximum length is ${effectiveMax}`
+    );
+  }
   const [pattern, allowedChars] = getPatternForComposition(config.composition);
   !pattern.test(input) && throwError(
     4 /* InvalidCharacter */,
